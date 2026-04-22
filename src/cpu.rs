@@ -4,7 +4,8 @@ use std::time::Duration;
 use tokio::time::sleep;
 use tracing::{info, warn, Level};
 use tracing_subscriber::FmtSubscriber;
-use rand::Rng;
+use rand::{SeedableRng, Rng};
+use rand::rngs::StdRng;
 
 /// Sets up our logging and metrics engines
 pub fn init_telemetry() {
@@ -29,10 +30,11 @@ pub fn init_telemetry() {
 /// Spawns a background task to track CPU mining and FPGA training metrics.
 pub async fn run_metrics_collector() {
     info!("Starting Metrics Collector...");
+    
+    // Use StdRng which is Send + Sync (unlike thread_rng)
+    let mut rng = StdRng::from_entropy();
 
     loop {
-        let mut rng = rand::thread_rng();
-
         // --- 1. Track Mining Metrics ---
         // We use labels (like "coin" => "monero") to slice our data later in Grafana.
         
